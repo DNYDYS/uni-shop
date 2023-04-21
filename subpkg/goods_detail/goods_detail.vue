@@ -1,6 +1,43 @@
 <template>
-  <view>
-    11111
+  <!-- 判断商品列表是否为空，为空的话不显示，防止页面渲染的时候闪现undifend -->
+  <view v-if="goods_info.goods_name" class="goods-detail-container">
+    <!-- 轮播图区域 -->
+    <swiper :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true">
+      <swiper-item v-for="(item,i) in goods_info.pics" :key="i">
+        <img :src="item.pics_big" @click="preview(i)">
+      </swiper-item>
+    </swiper>
+
+    <!-- 商品信息区域 -->
+    <view class="goods-info-box">
+      <!-- 商品价格 -->
+      <view class="price">
+        ￥{{goods_info.goods_price}}
+      </view>
+      <!-- 商品信息主题区域 -->
+      <view class="goods-info-body">
+        <!-- 商品名字 -->
+        <view class="goods-name">
+          {{goods_info.goods_name}}
+        </view>
+        <!-- 收藏按钮 -->
+        <view class="favi">
+          <uni-icons type="star" size="18" color="gray"></uni-icons>
+          <text>收藏</text>
+        </view>
+      </view>
+      <!-- 运费 -->
+      <view class="yf">
+        <text>快递: 免运费</text>
+      </view>
+    </view>
+    <rich-text :nodes="goods_info.goods_introduce"></rich-text>
+
+    <!-- 商品导航组件区域 -->
+    <view class="goods-nav">
+      <uni-goods-nav :fill="true" :options="options" :buttonGroup="buttonGroup" @click="onClick"
+        @buttonClick="buttonClick" />
+    </view>
   </view>
 </template>
 
@@ -8,12 +45,126 @@
   export default {
     data() {
       return {
-        
+        goods_info: {},
+        options: [ {
+          icon: 'shop',
+          text: '店铺',
+          infoBackgroundColor: '#007aff',
+          infoColor: "red"
+        }, {
+          icon: 'cart',
+          text: '购物车',
+          info: 2
+        }],
+        buttonGroup: [{
+            text: '加入购物车',
+            backgroundColor: '#ff0000',
+            color: '#fff'
+          },
+          {
+            text: '立即购买',
+            backgroundColor: '#ffa200',
+            color: '#fff'
+          }
+        ]
       };
+    },
+    onLoad(option) {
+      const goods_id = option.goods_id
+      this.getGoodsDetail(goods_id)
+    },
+    methods: {
+      async getGoodsDetail(goods_id) {
+        const {
+          data: res
+        } = await uni.$http.get('/api/public/v1/goods/detail?goods_id=', {
+          goods_id: goods_id
+        })
+        if (res.meta.status !== 200) {
+          return uni.$showMsg()
+        }
+        //  去除图片之间空白空隙
+        res.message.goods_introduce = res.message.goods_introduce.replace(/<img /g, '<img style="display:block;" ')
+        //  webp格式的图片在IOS不显示问题使用该行 本人iphone12 promax真机调试正常显示没问题所以并未替换webp文件后缀名
+        // res.message.goods_introduce = res.message.goods_introduce.replace(/<img /g,'<img style="display:block;" ').replace(/webp/g,'jpg')
+
+        this.goods_info = res.message
+        console.log(res.message)
+      },
+      preview(i) {
+        uni.previewImage({
+          current: i,
+          urls: this.goods_info.pics.map(x => x.pics_big)
+        })
+      },
+      onClick(e){
+        if(e.content.text === '购物车'){
+          uni.switchTab({
+            url:"/pages/cart/cart"
+          })
+        }
+      }
     }
+
   }
 </script>
 
 <style lang="scss">
+  swiper {
+    height: 750rpx;
 
+    image {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .goods-info-box {
+    padding: 10px;
+    padding-right: 0;
+
+    .price {
+      color: #C00000;
+      font-size: 18px;
+      margin: 10px 0;
+    }
+
+    .goods-info-body {
+      display: flex;
+      justify-content: space-between;
+
+      .goods-name {
+        font-size: 13px;
+        margin-right: 5px;
+      }
+
+      .favi {
+        width: 60px;
+        font-size: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-left: 1px solid #efefef;
+        color: gray;
+      }
+    }
+
+    .yf {
+      font-size: 12px;
+      color: gray;
+      margin: 10px 0;
+    }
+  }
+
+  .goods-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .goods-detail-container {
+    padding-bottom: 50px;
+  }
 </style>

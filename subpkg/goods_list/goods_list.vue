@@ -35,10 +35,6 @@
         const {data:res} = await uni.$http.get("/api/public/v1/goods/search",this.queryObj)
         // 关闭节流阀
         this.isLoading = false
-        if(cb){
-          console.log("111");
-          () => uni.stopPullDownRefresh()
-        }
         if(res.meta.status !== 200){
           return uni.$shouMsg()
         }
@@ -75,9 +71,9 @@
       this.total = 0
       this.isLoading = false
       this.goodsList = []
-      
+      // 别再用回调函数了这样写this.getGoodsList().then(() => uni.stopPullDownRefresh())
       // 重新发起请求
-      this.getGoodsList(true)
+      this.getGoodsList().then(() => uni.stopPullDownRefresh())
     }
   }
 </script>
