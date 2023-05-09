@@ -33,6 +33,7 @@ $http.afterRequest = function () {
 // #ifndef VUE3
 import Vue from 'vue'
 import App from './App'
+import store from './store'
 // import VueResource from 'vue-resource'
 
 // Vue.use(VueResource)
@@ -42,8 +43,14 @@ Vue.config.productionTip = false
 
 App.mpType = 'app'
 
+// 导入 store 的实例对象
+
+Vue.prototype.$store=store
+console.log(store,"this.$store.state.cart")
 const app = new Vue({
-    ...App
+    ...App,
+     // 将 store 挂载到 Vue 实例上
+    store
 })
 app.$mount()
 // #endif
@@ -51,10 +58,13 @@ app.$mount()
 // #ifdef VUE3
 import { createSSRApp } from 'vue'
 import App from './App.vue'
+import store from './store'
 export function createApp() {
   const app = createSSRApp(App)
+  app.use(store)
   return {
-    app
+    app,
+    store
   }
 }
 // #endif
