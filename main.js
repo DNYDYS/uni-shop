@@ -22,6 +22,15 @@ $http.beforeRequest = function (options) {
   wx.showLoading({
     title: '数据加载中...',
   })
+  
+  // 判断当前访问的接口是否是有权限的接口
+  if(options.url.indexOf('/api/')!== -1){
+    options.header = {
+      Authorization:store.state.m_user.token
+    }
+    
+  }
+  console.log(options)
 }
 
 //  响应拦截器 请求完成之后做一些事情
